@@ -1,0 +1,61 @@
+version: "3.0"
+services:
+  #POSTGRESQL
+  db:
+    container_name: db
+    restart: unless-stopped
+    image: postgres:9.3
+    environment:
+      POSTGRES_USER: "ilion"
+      POSTGRES_PASSWORD: "123"
+    ports:
+      - 15432:5432
+    volumes:
+      - ./postgresql/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+      - ./postgresql/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      # - dbdata:/var/lib/postgresql
+    networks:
+      - app-network
+
+  #PORTAINER
+  portainer-compose:
+    container_name: portainer
+    image: portainer/portainer
+    ports:
+      - 9000:9000
+    networks:
+      - app-network
+
+  #PGADMIN
+  pgadmin-compose:
+    container_name: pgadmin4
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "ilion"
+      PGADMIN_DEFAULT_PASSWORD: "123"
+    ports:
+      - "16543:80"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  #TOMCAT
+  tomcat-compose:
+    container_name: tomcat
+    image: tomcat:8.5-jre8
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs/tomcat:/usr/local/tomcat/logs
+      # - webapps:/usr/local/tomcat/webapps
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
